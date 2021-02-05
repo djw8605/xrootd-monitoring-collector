@@ -242,6 +242,7 @@ class UdpCollector(object):
         messages_sent = Counter("xrootd_mon_messages_sent", "Number of messages sent to the message bus", ['message_type'])
         process_died = Counter("xrootd_mon_process_died", "Number of times the process died")
         hash_size = Gauge("xrootd_mon_hash_size", "Number of items in hash", ['hash_type'])
+        buffer_size = Gauge("xrootd_mon_buffer_queue", "Number of messages in the buffer queue")
 
         # Number of messages
         while True:
@@ -266,6 +267,8 @@ class UdpCollector(object):
                 process_died.inc(metrics_message['count'])
             elif metrics_message['type'] == "hash size":
                 hash_size.labels(metrics_message['hash name']).set(metrics_message['count'])
+            elif metrics_message['type'] == "buffer size":
+                buffer_size.set(metrics_message["count"])
 
 
 
@@ -298,6 +301,9 @@ class UdpCollector(object):
                 break
             elif len(info) == 3:
                 self.process(*info)
+
+            # Set the message bus size
+            self.metrics_q.put({'type': 'buffer size', 'count': self.message_q.qsize()})
 
             if self.message_q.qsize() > 200:
                 if time.time() - last_warning > 5:
