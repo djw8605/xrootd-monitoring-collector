@@ -66,12 +66,18 @@ class UdpCollector(object):
         self.message_q = None
         self.child_process = None
         self.exchange = config.get('AMQP', 'exchange')
+        self.host  =  config.get('AMQP', 'host')
+        self.user  =  config.get('AMQP', 'user')
+        self.port  =  config.get('AMQP', 'port')
+        self.vhost  =  config.get('AMQP', 'vhost')
+        self.password  =  config.get('AMQP', 'password')
 
     def _create_rmq_channel(self):
         """
         Create a fresh connection to RabbitMQ
         """
-        parameters = pika.URLParameters(self.config.get('AMQP', 'url'))
+        credentials = pika.PlainCredentials(self.user,self.password)
+        parameters = pika.ConnectionParameters(self.host,self.port,self.vhost,credentials)
         connection = pika.BlockingConnection(parameters)
         self.channel = connection.channel()
 
@@ -81,6 +87,7 @@ class UdpCollector(object):
             exchange = self.exchange
 
         try:
+            self.logger.debug('Sending to the rabbitmq')
             self.channel.basic_publish(exchange,
                                        routing_key,
                                        json.dumps(record),

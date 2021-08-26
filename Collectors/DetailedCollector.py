@@ -20,7 +20,7 @@ import ttldict
 
 class DetailedCollector(UdpCollector.UdpCollector):
 
-    DEFAULT_PORT = 9930
+    DEFAULT_PORT = 9931
 
 
     def __init__(self, *args, **kw):
@@ -128,15 +128,14 @@ class DetailedCollector(UdpCollector.UdpCollector):
         rec['read'] = fileClose.read
         rec['readv'] = fileClose.readv
         rec['write'] = fileClose.write
-
-
+        
         if not lcg_record:
             self.logger.debug("OSG record to send: %s", str(rec))
-            self.publish("file-close", rec, exchange=self._exchange)
+            self.publish('file-close',rec, exchange=self._exchange)
         else:
             wlcg_packet = wlcg_converter.Convert(rec)
             self.logger.debug("WLCG record to send: %s", str(wlcg_packet))
-            self.publish("file-close", wlcg_packet, exchange=self._wlcg_exchange)
+            self.publish('file-close',wlcg_packet, exchange=self._wlcg_exchange)
 
         return rec
 
