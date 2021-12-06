@@ -241,7 +241,7 @@ class UdpCollector(object):
         missing_counter = Counter('missing_packets', 'Number of missing packets', ['host'])
         messages = Counter('messages', 'Number of messages')
         packets = Counter('packets', 'Number of packets')
-        self.metrics_q.put({'type': 'gstreamevt', 'count': 1})
+        gstreamevt = Counter('gstreamevt', 'Number of gstream events')
         reorder_counter = Counter("reordered_packets", "Reordered Packets", ['host'])
         failed_user = Counter("xrootd_mon_failed_user", "Failed User Collection")
         failed_filename = Counter("xrootd_mon_failed_filename", "Failed Filename Collection")
