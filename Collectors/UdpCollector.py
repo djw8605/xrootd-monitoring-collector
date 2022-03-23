@@ -74,9 +74,14 @@ class UdpCollector(object):
         """
         Create a fresh connection to RabbitMQ
         """
-        parameters = pika.URLParameters(self.config.get('AMQP', 'url'))
-        connection = pika.BlockingConnection(parameters)
-        self.channel = connection.channel()
+        try:
+            parameters = pika.URLParameters(self.config.get('AMQP', 'url'))
+            connection = pika.BlockingConnection(parameters)
+            self.channel = connection.channel()
+
+        except Exception  as e:
+            self.logger.exception('Error while connecting rabbitmq message;')
+            print(e)
 
 
     def publish(self, routing_key, record: dict, retry=True, exchange=None):
@@ -236,6 +241,7 @@ class UdpCollector(object):
         missing_counter = Counter('missing_packets', 'Number of missing packets', ['host'])
         messages = Counter('messages', 'Number of messages')
         packets = Counter('packets', 'Number of packets')
+        gstreamevt = Counter('gstreamevt', 'Number of gstream events')
         reorder_counter = Counter("reordered_packets", "Reordered Packets", ['host'])
         failed_user = Counter("xrootd_mon_failed_user", "Failed User Collection")
         failed_filename = Counter("xrootd_mon_failed_filename", "Failed Filename Collection")
@@ -256,6 +262,8 @@ class UdpCollector(object):
                 packets.inc(metrics_message['count'])
             elif metrics_message['type'] == "reordered packets":
                 reorder_counter.labels(metrics_message['addr']).inc(metrics_message['count'])
+            elif metrics_message['type'] == "gstreamevt":
+                gstreamevt.inc(metrics_message['count'])
             elif metrics_message['type'] == "failed user":
                 failed_user.inc(metrics_message['count'])
             elif metrics_message['type'] == "failed filename":
